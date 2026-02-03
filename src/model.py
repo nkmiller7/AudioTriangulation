@@ -8,7 +8,9 @@ class Norm(nn.Module):
     def __init__(self, channels, num_features):
         super(Norm, self).__init__()
         self.channels = channels
-        self.norm = nn.GroupNorm(8, channels, affine=False, eps=1e-4)
+        # Use adaptive number of groups: for small channel counts, use fewer groups
+        num_groups = min(8, channels)
+        self.norm = nn.GroupNorm(num_groups, channels, affine=False, eps=1e-4)
 
         if num_features is not None:
             self.fcw = nn.Linear(num_features, channels)
@@ -117,7 +119,7 @@ class Encoder(nn.Module):
 
 
 class Classifier(nn.Module):
-    def __init__(self, channel_in=8, num_classes=6, attr_feat_in=2, attr_feat_out=None):
+    def __init__(self, channel_in=4, num_classes=4, attr_feat_in=2, attr_feat_out=None):
         super(Classifier, self).__init__()
         self.encoder = Encoder(channel_in, ch=8, blocks=(4, 8, 16, 24, 32, 64), num_features=attr_feat_out)
 
@@ -141,9 +143,9 @@ class Classifier(nn.Module):
 
 
 if __name__ == "__main__":
-    x = torch.rand([1, 8, 256, 256]).to(torch.device("cuda:0"))
+    x = torch.rand([1, 4, 256, 256]).to(torch.device("cuda:0"))
 
-    u_net = Classifier(channel_in=8).to(torch.device("cuda:0"))
+    u_net = Classifier(channel_in=4).to(torch.device("cuda:0"))
 
     with torch.no_grad():
         out = u_net(x)

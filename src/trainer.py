@@ -44,7 +44,7 @@ class Trainer:
         self.test_loader = test_loader
         self.scaler = torch.cuda.amp.GradScaler(enabled=self.cfg["use_grad"])
 
-        self.segmentate = Classifier(channel_in=8).to(self.cfg["device"])
+        self.segmentate = Classifier(channel_in=4).to(self.cfg["device"])
 
         self.logger = Logger(cfg)
         self.opt_Segm = optim.Adam(list(self.segmentate.parameters()), lr=self.cfg["lr"], betas=(0.5, 0.9), )
