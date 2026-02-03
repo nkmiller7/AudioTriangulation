@@ -121,7 +121,7 @@ def generate_spectrogram(waveform, cfg):
             mel_spectrograms.append(bark_spec)
     
     # Stack spectrograms
-    spectrograms = torch.stack(mel_spectrograms, dim=0)  # Shape: [8, n_freq, time_frames]
+    spectrograms = torch.stack(mel_spectrograms, dim=0)  # Shape: [channels, freq_bins, time_frames]
     
     # Normalize spectrograms to [0, 1]
     spec_min = spectrograms.min()

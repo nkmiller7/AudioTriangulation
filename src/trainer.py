@@ -72,17 +72,13 @@ class Trainer:
         b_pred = torch.sigmoid(pred[:, 1])
         c_sin_pred = torch.sigmoid(pred[:, 2])
         c_cos_pred = torch.sigmoid(pred[:, 3])
-        d_sin_pred = torch.sigmoid(pred[:, 4])
-        d_cos_pred = torch.sigmoid(pred[:, 5])
 
         loss_a = self.mse_loss(a_pred, target[:, 0])
         loss_b = self.mse_loss(b_pred, target[:, 1])
         loss_c_sin = self.mse_loss(c_sin_pred, target[:, 2])
         loss_c_cos = self.mse_loss(c_cos_pred, target[:, 3])
-        loss_d_sin = self.mse_loss(d_sin_pred, target[:, 4])
-        loss_d_cos = self.mse_loss(d_cos_pred, target[:, 5])
 
-        return loss_a + loss_b + loss_c_sin + loss_c_cos + loss_d_sin + loss_d_cos
+        return loss_a + loss_b + loss_c_sin + loss_c_cos 
 
     def fit(self):
         for epoch in range(self.epoch, self.cfg["epochs"]):
@@ -163,8 +159,6 @@ class Trainer:
         total_mse_b = 0.0
         total_mae_c = 0.0
         total_mse_c = 0.0
-        total_mae_d = 0.0
-        total_mse_d = 0.0
         total_samples = 0
 
         with torch.no_grad():
@@ -207,15 +201,6 @@ class Trainer:
                 total_mae_c += mae_c
                 total_mse_c += mse_c
 
-                # Calculations for d
-                d_sin_pred = torch.sigmoid(out[:, 4])
-                d_cos_pred = torch.sigmoid(out[:, 5])
-                d_sin_true = mask[:, 4]
-                d_cos_true = mask[:, 5]
-                mae_d, mse_d = process_angle(d_sin_pred, d_cos_pred, d_sin_true, d_cos_true)
-                total_mae_d += mae_d
-                total_mse_d += mse_d
-
                 total_samples += batch_size
 
         if total_samples == 0:
@@ -231,17 +216,14 @@ class Trainer:
         rmse_b = (total_mse_b / total_samples) ** 0.5
         mae_c = total_mae_c / total_samples
         rmse_c = (total_mse_c / total_samples) ** 0.5
-        mae_d = total_mae_d / total_samples
-        rmse_d = (total_mse_d / total_samples) ** 0.5
 
         self.scheduler.step(avg_test_loss)
 
         # Logowanie wyników
         data_to_log = {"Graph": {"Test_Loss": avg_test_loss, "Epoch": epoch, "MAE_a": mae_a, "RMSE_a": rmse_a, "MAE_b": mae_b, "RMSE_b": rmse_b,
-            "MAE_c": mae_c, "RMSE_c": rmse_c, "MAE_d": mae_d, "RMSE_d": rmse_d},
+            "MAE_c": mae_c, "RMSE_c": rmse_c},
             "Print": {"Test_Epoch": epoch + 1, "Test_Loss": avg_test_loss,  "MAE_a": mae_a,
-                "RMSE_a": rmse_a, "MAE_b": mae_b, "RMSE_b": rmse_b, "MAE_c": mae_c, "RMSE_c": rmse_c, "MAE_d": mae_d,
-                "RMSE_d": rmse_d}, "Image": {}, "Audio": {}}
+                "RMSE_a": rmse_a, "MAE_b": mae_b, "RMSE_b": rmse_b, "MAE_c": mae_c, "RMSE_c": rmse_c, "Image": {}, "Audio": {}}}
 
         self.logger.step(data_to_log)
         print(f"\nEpoch {epoch + 1} - Test results:")
@@ -249,4 +231,3 @@ class Trainer:
         print(f"MAE a: {mae_a:.4f} ± {rmse_a:.4f}")
         print(f"MAE b: {mae_b:.4f} ± {rmse_b:.4f}")
         print(f"MAE c: {mae_c:.4f} ± {rmse_c:.4f}")
-        print(f"MAE d: {mae_d:.4f} ± {rmse_d:.4f}\n")
